@@ -1,0 +1,130 @@
+name: Nightly Build
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  comprehensive-test:
+    name: Comprehensive Testing
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install additional tools
+        run: |
+          apt-get update
+          apt-get install -y graphviz imagemagick
+      
+      - name: Run all test suites
+        run: |
+          cd sim
+          chmod +x run_all_tests.sh TEST_SUITE.sh
+          ./run_all_tests.sh
+      
+      - name: Generate test coverage report
+        run: |
+          echo "=== Test Coverage Summary ==="
+          find sim/results -name "*.log" -type f | wc -l
+          echo "Total test logs generated"
+      
+      - name: Generate waveform previews
+        if: always()
+        continue-on-error: true
+        run: |
+          cd sim/waveforms
+          for vcd in *.vcd; do
+            if [ -f "$vcd" ]; then
+              echo "Processing $vcd"
+              # VCD files are binary/signal data - document their presence
+              ls -lh "$vcd"
+            fi
+          done
+      
+      - name: Archive comprehensive results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-test-results-${{ github.run_number }}
+          path: |
+            sim/results/
+            sim/waveforms/
+          retention-days: 90
+
+  performance-benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run individual tests with timing
+        run: |
+          cd sim
+          chmod +x run_individual_test.sh
+          
+          echo "=== Performance Benchmarks ===" > benchmark_results.txt
+          echo "Date: $(date)" >> benchmark_results.txt
+          echo "" >> benchmark_results.txt
+          
+          for tb in testbenches/tb_*.v; do
+            test_name=$(basename "$tb" .v)
+            echo "Benchmarking: $test_name" >> benchmark_results.txt
+            
+            start_time=$(date +%s.%N)
+            ./run_individual_test.sh "$test_name" > /dev/null 2>&1
+            end_time=$(date +%s.%N)
+            
+            runtime=$(echo "$end_time - $start_time" | bc)
+            echo "  Runtime: ${runtime}s" >> benchmark_results.txt
+          done
+          
+          cat benchmark_results.txt
+      
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-benchmarks
+          path: sim/benchmark_results.txt
+          retention-days: 90
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Count lines of code
+        run: |
+          echo "=== Code Statistics ==="
+          echo "RTL Code:"
+          find rtl -name "*.v" -exec wc -l {} + | tail -1
+          echo ""
+          echo "Testbench Code:"
+          find sim/testbenches -name "*.v" -exec wc -l {} + | tail -1
+          echo ""
+          echo "Total Verilog Files:"
+          find . -name "*.v" | wc -l
+      
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "=== Pending Items ==="
+          grep -rn "TODO\|FIXME\|XXX\|HACK" rtl/ sim/ --include="*.v" || echo "No pending items found"
+      
+      - name: Verify documentation
+        run: |
+          echo "=== Documentation Check ==="
+          [ -f README.md ] && echo "✓ README.md exists" || echo "✗ README.md missing"
+          [ -f docs/api_reference.md ] && echo "✓ API Reference exists" || echo "✗ API Reference missing"
+          [ -f docs/architecture.md ] && echo "✓ Architecture doc exists" || echo "✗ Architecture doc missing"

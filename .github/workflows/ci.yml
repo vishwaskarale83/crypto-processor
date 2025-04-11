@@ -1,0 +1,143 @@
+name: CI - Compile and Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  compile:
+    name: Compile RTL
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Verify iverilog installation
+        run: |
+          iverilog -v
+          vvp -v
+      
+      - name: Create build directory
+        run: mkdir -p build
+      
+      - name: Compile all modules
+        run: |
+          cd scripts
+          chmod +x compile.sh
+          ./compile.sh iverilog
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/
+          retention-days: 5
+
+  test:
+    name: Run All Tests
+    runs-on: ubuntu-latest
+    needs: compile
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Verify iverilog installation
+        run: |
+          iverilog -v
+          vvp -v
+      
+      - name: Make test scripts executable
+        run: |
+          chmod +x sim/run_all_tests.sh
+          chmod +x sim/run_individual_test.sh
+      
+      - name: Run all tests
+        run: |
+          cd sim
+          ./run_all_tests.sh
+      
+      - name: Display test results
+        if: always()
+        run: |
+          echo "=== Test Results ==="
+          if [ -f sim/results/*.log ]; then
+            for log in sim/results/*_sim.log; do
+              echo "--- $(basename $log) ---"
+              tail -n 20 "$log"
+              echo ""
+            done
+          fi
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            sim/results/
+            sim/waveforms/
+          retention-days: 30
+      
+      - name: Check for test failures
+        run: |
+          cd sim/results
+          if grep -r "FAILED\|ERROR" *.log; then
+            echo "::error::Tests failed! Check the logs above."
+            exit 1
+          else
+            echo "::notice::All tests passed successfully!"
+          fi
+
+  syntax-check:
+    name: Syntax Check
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check syntax for all RTL files
+        run: |
+          echo "Checking syntax for all Verilog files..."
+          find rtl -name "*.v" | while read file; do
+            echo "Checking: $file"
+            iverilog -t null -Wall "$file" || exit 1
+          done
+      
+      - name: Check syntax for all testbenches
+        run: |
+          echo "Checking syntax for all testbench files..."
+          find sim/testbenches -name "*.v" | while read file; do
+            echo "Checking: $file"
+            iverilog -t null -Wall "$file" || exit 1
+          done
+
+  lint:
+    name: Lint Verilog Code
+    runs-on: ubuntu-latest
+    container:
+      image: verilator/verilator:latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Verilator lint on RTL modules
+        continue-on-error: true
+        run: |
+          echo "Running Verilator lint..."
+          find rtl -name "*.v" | while read file; do
+            echo "Linting: $file"
+            verilator --lint-only -Wall "$file" 2>&1 || true
+          done

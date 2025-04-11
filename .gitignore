@@ -1,0 +1,104 @@
+# Build outputs
+build/
+*.vvp
+*.vcd
+*.fst
+*.out
+
+# Documentation (keep only README.md)
+docs/
+*.md
+!README.md
+
+# Simulation results
+sim/results/*.vvp
+sim/results/*.log
+sim/waveforms/*.vcd
+sim/waveforms/*.fst
+
+# Synthesis outputs
+synthesis/reports/*.rpt
+synthesis/reports/*.log
+*.dcp
+*.bit
+*.bin
+
+# Compilation logs
+*.log
+*.compile.log
+*.sim.log
+
+# ModelSim / Questa
+work/
+*.wlf
+*.vstf
+*.log
+transcript
+modelsim.ini
+
+# VCS
+csrc/
+simv*
+*.daidir/
+ucli.key
+
+# Vivado
+*.jou
+*.str
+*.xpr
+.Xil/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+
+# Quartus
+*.qpf
+*.qsf
+*.qws
+*.sof
+*.pof
+db/
+incremental_db/
+output_files/
+
+# Verilator
+obj_dir/
+*.mk
+*.cpp
+*.h
+*.d
+
+# Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.env
+
+# OS specific
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Package files
+*.tar.gz
+*.zip
+release/

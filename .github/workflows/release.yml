@@ -1,0 +1,154 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v0.1.0'
+
+jobs:
+  build-release:
+    name: Build Release Package
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for proper versioning
+      
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Run full test suite
+        run: |
+          cd sim
+          chmod +x run_all_tests.sh
+          ./run_all_tests.sh
+      
+      - name: Check test results
+        run: |
+          if grep -r "FAILED\|ERROR" sim/results/*.log; then
+            echo "::error::Cannot create release - tests failed!"
+            exit 1
+          fi
+      
+      - name: Create release package
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          PACKAGE_NAME="crypto-processor-${VERSION}"
+          
+          mkdir -p "release/${PACKAGE_NAME}"
+          
+          # Copy RTL files
+          cp -r rtl "release/${PACKAGE_NAME}/"
+          
+          # Copy documentation
+          cp -r docs "release/${PACKAGE_NAME}/"
+          cp README.md "release/${PACKAGE_NAME}/"
+          
+          # Copy testbenches
+          mkdir -p "release/${PACKAGE_NAME}/verification"
+          cp -r sim/testbenches "release/${PACKAGE_NAME}/verification/"
+          cp -r sim/test_vectors "release/${PACKAGE_NAME}/verification/" 2>/dev/null || true
+          
+          # Copy scripts
+          cp -r scripts "release/${PACKAGE_NAME}/"
+          
+          # Copy synthesis files
+          cp -r synthesis "release/${PACKAGE_NAME}/"
+          
+          # Create release notes
+          cat > "release/${PACKAGE_NAME}/RELEASE_NOTES.txt" << EOF
+          CryptoKnight Processor ${VERSION}
+          Release Date: $(date +%Y-%m-%d)
+          
+          This package contains:
+          - RTL source code for the CryptoKnight cryptographic processor
+          - AES and RSA encryption cores
+          - Complete verification testbenches
+          - Synthesis scripts and constraints
+          - Documentation
+          
+          For usage instructions, see README.md
+          EOF
+          
+          # Create tarball
+          cd release
+          tar -czf "${PACKAGE_NAME}.tar.gz" "${PACKAGE_NAME}"
+          zip -r "${PACKAGE_NAME}.zip" "${PACKAGE_NAME}"
+          
+          # Generate checksums
+          sha256sum "${PACKAGE_NAME}.tar.gz" > "${PACKAGE_NAME}.tar.gz.sha256"
+          sha256sum "${PACKAGE_NAME}.zip" > "${PACKAGE_NAME}.zip.sha256"
+      
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-package-${{ steps.get_version.outputs.version }}
+          path: |
+            release/*.tar.gz
+            release/*.zip
+            release/*.sha256
+          retention-days: 90
+      
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/*.tar.gz
+            release/*.zip
+            release/*.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  synthesis-check:
+    name: Synthesis Compatibility Check
+    runs-on: ubuntu-latest
+    container:
+      image: hdlc/sim:osvb
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check RTL synthesizability
+        run: |
+          echo "=== Synthesizability Check ==="
+          echo "Checking for common synthesis issues..."
+          
+          # Check for initial blocks (not synthesizable)
+          if grep -rn "initial begin" rtl/ --include="*.v"; then
+            echo "::warning::Found 'initial' blocks in RTL - these are not synthesizable"
+          fi
+          
+          # Check for delays (not synthesizable)
+          if grep -rn "#[0-9]" rtl/ --include="*.v" | grep -v "//"; then
+            echo "::warning::Found delay statements in RTL - these are not synthesizable"
+          fi
+          
+          # Check for $display (not synthesizable)
+          if grep -rn "\$display\|\$write\|\$monitor" rtl/ --include="*.v"; then
+            echo "::warning::Found display statements in RTL - these should be removed for synthesis"
+          fi
+          
+          echo "Synthesis compatibility check complete"
