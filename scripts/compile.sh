@@ -104,19 +104,17 @@ compile_iverilog() {
     
     cd "$BUILD_DIR" || exit 1
     
-    # Create file list
+    # Create file list (excluding sub-modules that are included in aes_core.v)
+    # Note: Using key_manager_stub.v instead of full keygen (requires Xilinx IP)
     cat > files.list << EOF
 $RTL_DIR/common/crypto_pkg.v
 $RTL_DIR/utils/remainder_calc.v
 $RTL_DIR/utils/rsa_operation_decoder.v
 $RTL_DIR/utils/aes_operation_decoder.v
-$RTL_DIR/crypto/aes/aes_sbox.v
-$RTL_DIR/crypto/aes/aes_key_expansion.v
 $RTL_DIR/crypto/aes/aes_core.v
 $RTL_DIR/crypto/rsa/karatsuba_mult.v
 $RTL_DIR/crypto/rsa/rsa_core.v
-$RTL_DIR/keygen/aes_keygen.v
-$RTL_DIR/keygen/key_manager.v
+$RTL_DIR/keygen/key_manager_stub.v
 $RTL_DIR/memory/instruction_memory.v
 $RTL_DIR/memory/data_memory.v
 $RTL_DIR/processor/program_counter.v
@@ -128,8 +126,8 @@ $RTL_DIR/crypto/crypto_controller.v
 $RTL_DIR/processor/risc_top.v
 EOF
     
-    # Compile
-    iverilog -g2012 -o crypto_processor.vvp -c files.list || exit 1
+    # Compile with include path (using Verilog-2005 to avoid "new" keyword conflict)
+    iverilog -g2005 -I"$PROJECT_ROOT" -o crypto_processor.vvp -c files.list || exit 1
     
     echo "${GREEN}✓ Icarus Verilog compilation complete${NC}"
     echo "   Output: $BUILD_DIR/crypto_processor.vvp"

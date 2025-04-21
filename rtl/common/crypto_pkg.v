@@ -9,6 +9,9 @@
 // Version: 2.0
 //==============================================================================
 
+`ifndef CRYPTO_PKG_V
+`define CRYPTO_PKG_V
+
 // AES Configuration Parameters
 `define AES_KEY_WIDTH       128
 `define AES_BLOCK_WIDTH     128
@@ -68,4 +71,6 @@
 
 // Buffer Configuration
 `define CRYPTO_BUFFER_DEPTH 9    // Number of buffered operations
+
+`endif // CRYPTO_PKG_V
 

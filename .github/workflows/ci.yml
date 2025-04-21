@@ -111,8 +111,13 @@ jobs:
         run: |
           echo "Checking syntax for all Verilog files..."
           find rtl -name "*.v" | while read file; do
+            # Skip package files that don't have module declarations
+            if ! grep -q "^module " "$file"; then
+              echo "Skipping (no module): $file"
+              continue
+            fi
             echo "Checking: $file"
-            iverilog -t null -Wall "$file" || exit 1
+            iverilog -g2005 -t null -Wall -I. "$file" || exit 1
           done
       
       - name: Check syntax for all testbenches
@@ -120,7 +125,7 @@ jobs:
           echo "Checking syntax for all testbench files..."
           find sim/testbenches -name "*.v" | while read file; do
             echo "Checking: $file"
-            iverilog -t null -Wall "$file" || exit 1
+            iverilog -g2005 -t null -Wall -I. "$file" || exit 1
           done
 
   lint:
