@@ -102,3 +102,6 @@ Thumbs.db
 *.tar.gz
 *.zip
 release/
+
+# Internal scripts to exclude
+scripts/staged_git_commits.sh
