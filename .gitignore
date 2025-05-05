@@ -105,3 +105,4 @@ release/
 
 # Internal scripts to exclude
 scripts/staged_git_commits.sh
+
