@@ -108,24 +108,26 @@ jobs:
       
       - name: Check syntax for all RTL files
         run: |
-          echo "Checking syntax for all Verilog files..."
-          # Files with external dependencies that can't be checked in isolation
-          SKIP_PATTERN="key_manager.v|aes_keygen.v|crypto_controller.v|rsa_legacy.v|risc_top.v|karatsuba_mult.v"
-          find rtl -name "*.v" | while read file; do
-            # Skip package files that don't have module declarations
-            if ! grep -q "^module " "$file"; then
-              echo "Skipping (no module): $file"
-              continue
-            fi
-            # Skip files with external/IP dependencies
-            basename=$(basename "$file")
-            if echo "$basename" | grep -qE "$SKIP_PATTERN"; then
-              echo "Skipping (external dependency): $file"
-              continue
-            fi
+          echo "Checking syntax via full compilation..."
+          # Full compilation is the most accurate syntax check for a multi-module design
+          chmod +x scripts/compile.sh
+          ./scripts/compile.sh iverilog
+          echo "All RTL files passed syntax/compilation check"
+      
+      - name: Check standalone leaf modules
+        run: |
+          echo "Checking standalone utility modules..."
+          # These self-contained files can be checked individually
+          for file in \
+            rtl/utils/aes_operation_decoder.v \
+            rtl/utils/rsa_operation_decoder.v \
+            rtl/utils/remainder_calc.v \
+            rtl/memory/data_memory.v \
+            rtl/memory/instruction_memory.v; do
             echo "Checking: $file"
-            iverilog -g2005 -t null -Wall -I. "$file" || exit 1
+            iverilog -g2005 -t null -I. "$file" || exit 1
           done
+          echo "All standalone modules passed"
       
       - name: Check syntax for all testbenches
         run: |
