@@ -1,7 +1,5 @@
 # CryptoKnight Processor
 
-[![CI - Compile and Test](https://github.com/vishwaskarale83/crypto-processor/actions/workflows/ci.yml/badge.svg)](https://github.com/vishwaskarale83/crypto-processor/actions/workflows/ci.yml)
-
 A hardware cryptographic processor combining a custom RISC processor with AES-128 and RSA-512 encryption/decryption accelerators.
 
 ## Overview
