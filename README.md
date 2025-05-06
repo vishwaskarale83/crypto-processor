@@ -1,8 +1,6 @@
 # CryptoKnight Processor
 
-[![CI - Compile and Test](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/ci.yml)
-[![Nightly Build](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/nightly.yml/badge.svg)](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/nightly.yml)
-[![Release Build](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/crypto-processor/actions/workflows/release.yml)
+[![CI - Compile and Test](https://github.com/vishwaskarale83/crypto-processor/actions/workflows/ci.yml/badge.svg)](https://github.com/vishwaskarale83/crypto-processor/actions/workflows/ci.yml)
 
 A hardware cryptographic processor combining a custom RISC processor with AES-128 and RSA-512 encryption/decryption accelerators.
 
@@ -106,65 +104,6 @@ crypto-processor/
 - **RSA Latency**: ~500 clock cycles per operation
 - **Operation Buffering**: Up to 9 concurrent operations
 - **Key Generation**: On-demand or automatic refresh
-
-## CI/CD Pipeline
-
-This project uses GitHub Actions for automated continuous integration and deployment:
-
-### Workflows
-
-#### 1. **CI - Compile and Test** (`.github/workflows/ci.yml`)
-Runs on every push and pull request to main branches:
-- **Compile Job**: Compiles all RTL modules using Icarus Verilog
-- **Test Job**: Runs all testbenches and generates test reports
-- **Syntax Check**: Validates Verilog syntax for all files
-- **Lint Job**: Runs Verilator linting for code quality
-
-#### 2. **Nightly Build** (`.github/workflows/nightly.yml`)
-Scheduled comprehensive testing every night:
-- Full test suite execution with detailed logging
-- Performance benchmarking of all modules
-- Code quality analysis and statistics
-- Documentation verification
-
-#### 3. **Release Build** (`.github/workflows/release.yml`)
-Triggered on version tags (e.g., `v1.0.0`):
-- Complete test validation before release
-- Automatic package creation (tar.gz and zip)
-- Synthesis compatibility checks
-- GitHub release creation with artifacts
-
-### Docker Images Used
-
-The CI/CD pipeline uses the following Docker images:
-- **`hdlc/sim:osvb`**: Open-source Verilog tools (Icarus Verilog, VVP, GTKWave)
-- **`verilator/verilator:latest`**: Verilator for advanced linting and analysis
-
-### Running Locally with Docker
-
-To replicate the CI environment locally:
-
-```bash
-# Pull the simulation image
-docker pull hdlc/sim:osvb
-
-# Run compilation in Docker
-docker run --rm -v $(pwd):/work -w /work hdlc/sim:osvb \
-  bash -c "cd scripts && ./compile.sh iverilog"
-
-# Run tests in Docker
-docker run --rm -v $(pwd):/work -w /work/sim hdlc/sim:osvb \
-  bash -c "./run_all_tests.sh"
-```
-
-### Setting Up GitHub Actions
-
-After pushing this repository to GitHub:
-
-1. The workflows will automatically run on push/PR
-2. Update badge URLs in README.md with your repository path:
-   - Replace `YOUR_USERNAME/crypto-processor` with `username/repo-name`
-3. For release builds, create a tag: `git tag v1.0.0 && git push --tags`
 
 ## Getting Started
 
