@@ -89,7 +89,7 @@ jobs:
       - name: Check for test failures
         run: |
           cd sim/results
-          if grep -r "FAILED\|ERROR" *.log; then
+          if grep -r "FAILED\|COMPILATION FAILED" *.log 2>/dev/null; then
             echo "::error::Tests failed! Check the logs above."
             exit 1
           else

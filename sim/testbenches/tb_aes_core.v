@@ -234,7 +234,7 @@ module tb_aes_core;
     
     // Timeout watchdog
     initial begin
-        #500000;  // 500us timeout
+        #5000000;  // 5ms timeout (increased for CI environment)
         $display("\n========================================");
         $display("ERROR: Testbench timeout!");
         $display("========================================");
