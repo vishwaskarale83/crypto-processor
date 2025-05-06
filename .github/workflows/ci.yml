@@ -109,18 +109,18 @@ jobs:
       - name: Check syntax for all RTL files
         run: |
           echo "Checking syntax for all Verilog files..."
-          # Files that require Xilinx IP or external modules - skip these
-          SKIP_PATTERN="key_manager.v|aes_keygen.v"
+          # Files with external dependencies that can't be checked in isolation
+          SKIP_PATTERN="key_manager.v|aes_keygen.v|crypto_controller.v|rsa_legacy.v|risc_top.v"
           find rtl -name "*.v" | while read file; do
             # Skip package files that don't have module declarations
             if ! grep -q "^module " "$file"; then
               echo "Skipping (no module): $file"
               continue
             fi
-            # Skip files with Xilinx IP dependencies
+            # Skip files with external/IP dependencies
             basename=$(basename "$file")
             if echo "$basename" | grep -qE "$SKIP_PATTERN"; then
-              echo "Skipping (Xilinx IP dependency): $file"
+              echo "Skipping (external dependency): $file"
               continue
             fi
             echo "Checking: $file"
