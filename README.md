@@ -1,10 +1,10 @@
-# CryptoKnight Processor
+# Crypto Processor
 
 A hardware cryptographic processor combining a custom RISC processor with AES-128 and RSA-512 encryption/decryption accelerators.
 
 ## Overview
 
-The CryptoKnight processor is a Verilog-based system-on-chip that provides:
+The Crypto processor is a Verilog-based system-on-chip that provides:
 - Custom RISC processor with crypto-specific instruction set
 - Hardware-accelerated AES-128 encryption/decryption
 - Hardware-accelerated RSA-512 encryption/decryption  
@@ -24,7 +24,7 @@ The CryptoKnight processor is a Verilog-based system-on-chip that provides:
 │         └─────────────────┴───────────────────┘              │
 │                           │                                  │
 │  ┌────────────────────────┴────────────────────────┐        │
-│  │             CryptoKnight Controller              │        │
+│  │             Crypto Controller              │        │
 │  │   ┌────────────┐              ┌────────────┐    │        │
 │  │   │    AES     │              │    RSA     │    │        │
 │  │   │   Engine   │              │   Engine   │    │        │
@@ -229,7 +229,7 @@ Improvements and contributions are welcome! Areas for enhancement:
 
 ## Authors
 
-CryptoKnight Team:
+Crypto Team:
 - Riya
 - Atharva  
 - Vishwas
