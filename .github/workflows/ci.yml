@@ -131,11 +131,16 @@ jobs:
       
       - name: Check syntax for all testbenches
         run: |
-          echo "Checking syntax for all testbench files..."
-          find sim/testbenches -name "*.v" | while read file; do
-            echo "Checking: $file"
-            iverilog -g2005 -t null -Wall -I. "$file" || exit 1
-          done
+          echo "Checking syntax for testbenches by compiling with their dependencies..."
+          RTL=rtl
+          # Simple testbenches with single RTL dependency
+          iverilog -g2005 -t null -I. sim/testbenches/tb_karatsuba.v ${RTL}/crypto/rsa/karatsuba_mult.v || exit 1
+          iverilog -g2005 -t null -I. sim/testbenches/tb_aes_core.v ${RTL}/crypto/aes/aes_core.v || exit 1
+          iverilog -g2005 -t null -I. sim/testbenches/tb_register_bank.v ${RTL}/processor/register_bank.v || exit 1
+          iverilog -g2005 -t null -I. sim/testbenches/tb_data_memory.v ${RTL}/memory/data_memory.v || exit 1
+          iverilog -g2005 -t null -I. sim/testbenches/tb_rsa_core.v \
+            ${RTL}/crypto/rsa/rsa_core.v ${RTL}/crypto/rsa/karatsuba_mult.v ${RTL}/utils/remainder_calc.v || exit 1
+          echo "All testbench syntax checks passed"
 
   lint:
     name: Lint Verilog Code

@@ -49,7 +49,7 @@ run_test() {
     
     # Compile
     echo "  Compiling..."
-    iverilog -g2009 -o ${RESULTS_DIR}/${test_name}.vvp \
+    iverilog -g2005 -o ${RESULTS_DIR}/${test_name}.vvp \
         ${tb_file} ${rtl_files} 2> ${RESULTS_DIR}/${test_name}_compile.log
     
     if [ $? -ne 0 ]; then
