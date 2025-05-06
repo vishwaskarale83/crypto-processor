@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 # Directories
 RTL_DIR="../rtl"
-LEGACY_DIR=".."
+LEGACY_DIR="../legacy"
 TB_DIR="./testbenches"
 RESULTS_DIR="./results"
 VCD_DIR="./waveforms"
@@ -96,7 +96,7 @@ echo "Test Suite 1: Utility Modules"
 echo "========================================"
 run_test "tb_karatsuba" \
     "${TB_DIR}/tb_karatsuba.v" \
-    "${LEGACY_DIR}/Karatsuba.v"
+    "${RTL_DIR}/crypto/rsa/karatsuba_mult.v"
 
 # Test 2: AES Core
 echo "========================================"
@@ -104,7 +104,7 @@ echo "Test Suite 2: AES Modules"
 echo "========================================"
 run_test "tb_aes_core" \
     "${TB_DIR}/tb_aes_core.v" \
-    "${LEGACY_DIR}/AES.v"
+    "${RTL_DIR}/crypto/aes/aes_core.v"
 
 # Test 3: RSA Core
 echo "========================================"
@@ -112,7 +112,7 @@ echo "Test Suite 3: RSA Modules"
 echo "========================================"
 run_test "tb_rsa_core" \
     "${TB_DIR}/tb_rsa_core.v" \
-    "${LEGACY_DIR}/RSA_enc_dec.v ${LEGACY_DIR}/Karatsuba.v ${LEGACY_DIR}/Remainder_finder.v"
+    "${RTL_DIR}/crypto/rsa/rsa_core.v ${RTL_DIR}/crypto/rsa/karatsuba_mult.v ${RTL_DIR}/utils/remainder_calc.v"
 
 # Test 4: Register Bank
 echo "========================================"
@@ -120,7 +120,7 @@ echo "Test Suite 4: Processor Modules"
 echo "========================================"
 run_test "tb_register_bank" \
     "${TB_DIR}/tb_register_bank.v" \
-    "${LEGACY_DIR}/REGISTER_BANK_MODULE.v"
+    "${RTL_DIR}/processor/register_bank.v"
 
 # Test 5: Data Memory
 echo "========================================"
@@ -128,7 +128,7 @@ echo "Test Suite 5: Memory Modules"
 echo "========================================"
 run_test "tb_data_memory" \
     "${TB_DIR}/tb_data_memory.v" \
-    "${LEGACY_DIR}/DATA_MEMORY_Module.v"
+    "${RTL_DIR}/memory/data_memory.v"
 
 # Test 6: RISC System (requires all dependencies)
 echo "========================================"
@@ -137,7 +137,7 @@ echo "========================================"
 echo -e "${YELLOW}Note: RISC system test requires all modules${NC}"
 run_test "tb_risc_system" \
     "${TB_DIR}/tb_risc_system.v" \
-    "${LEGACY_DIR}/RISC.v ${LEGACY_DIR}/CONTROL_PATH_MODULE_1.v ${LEGACY_DIR}/DATA_PATH_MODULE_1.v ${LEGACY_DIR}/INSTRN_Dcoder_Module.v ${LEGACY_DIR}/PC_Module.v ${LEGACY_DIR}/MEMORY_Module.v ${LEGACY_DIR}/DATA_MEMORY_Module.v ${LEGACY_DIR}/REGISTER_BANK_MODULE.v ${LEGACY_DIR}/CryptoKnight.v ${LEGACY_DIR}/AES.v ${LEGACY_DIR}/RSA.v ${LEGACY_DIR}/RSA_enc_dec.v ${LEGACY_DIR}/Karatsuba.v ${LEGACY_DIR}/Remainder_finder.v ${LEGACY_DIR}/key_generator.v ${LEGACY_DIR}/AES_generator.v ${LEGACY_DIR}/AES_d_e.v ${LEGACY_DIR}/RSA_d_e.v"
+    "${RTL_DIR}/common/crypto_pkg.v ${RTL_DIR}/utils/remainder_calc.v ${RTL_DIR}/utils/rsa_operation_decoder.v ${RTL_DIR}/utils/aes_operation_decoder.v ${RTL_DIR}/crypto/aes/aes_core.v ${RTL_DIR}/crypto/rsa/karatsuba_mult.v ${RTL_DIR}/crypto/rsa/rsa_core.v ${RTL_DIR}/keygen/key_manager_stub.v ${RTL_DIR}/memory/instruction_memory.v ${RTL_DIR}/memory/data_memory.v ${RTL_DIR}/processor/program_counter.v ${RTL_DIR}/processor/instruction_decoder.v ${RTL_DIR}/processor/register_bank.v ${RTL_DIR}/processor/control_path.v ${RTL_DIR}/processor/data_path.v ${RTL_DIR}/crypto/crypto_controller.v ${RTL_DIR}/processor/risc_top.v"
 
 # Print Summary
 echo ""

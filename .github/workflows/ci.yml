@@ -110,7 +110,7 @@ jobs:
         run: |
           echo "Checking syntax for all Verilog files..."
           # Files with external dependencies that can't be checked in isolation
-          SKIP_PATTERN="key_manager.v|aes_keygen.v|crypto_controller.v|rsa_legacy.v|risc_top.v"
+          SKIP_PATTERN="key_manager.v|aes_keygen.v|crypto_controller.v|rsa_legacy.v|risc_top.v|karatsuba_mult.v"
           find rtl -name "*.v" | while read file; do
             # Skip package files that don't have module declarations
             if ! grep -q "^module " "$file"; then
